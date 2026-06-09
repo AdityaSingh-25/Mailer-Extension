@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>LinkedIn Helper Pro</title>
+  <style>
+    /* ── Theme variables ─────────────────────────────────────────────────── */
+    :root {
+      --bg:           #f4f6f8;
+      --surface:      #ffffff;
+      --surface-2:    #f7fbff;
+      --border:       #d8e0e8;
+      --text:         #1a1a2e;
+      --text-2:       #555;
+      --text-3:       #888;
+      --primary:      #0073b1;
+      --primary-2:    #00568a;
+      --primary-soft: #e8f4fd;
+      --green:        #057642;
+      --green-soft:   #e8f7ee;
+      --red:          #c0392b;
+      --red-soft:     #fdecea;
+      --teal:         #0c7c72;
+      --warn:         #b45309;
+      --warn-soft:    #fff3e0;
+      --shadow:       0 2px 8px rgba(0,0,0,0.06);
+      --shadow-lg:    0 8px 24px rgba(0,0,0,0.12);
+      --radius:       8px;
+    }
+    html[data-theme="dark"] {
+      --bg:           #0f1218;
+      --surface:      #1a1f29;
+      --surface-2:    #232a37;
+      --border:       #2c3441;
+      --text:         #e8ecf2;
+      --text-2:       #a8b1be;
+      --text-3:       #6c7686;
+      --primary:      #4fa8d8;
+      --primary-2:    #6cbae5;
+      --primary-soft: #1a2a3a;
+      --green:        #4ade80;
+      --green-soft:   #1a2e22;
+      --red:          #f87171;
+      --red-soft:     #2e1a1a;
+      --teal:         #5eead4;
+      --warn:         #fbbf24;
+      --warn-soft:    #2e2517;
+      --shadow:       0 2px 8px rgba(0,0,0,0.3);
+      --shadow-lg:    0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      width: 620px; padding: 14px; margin: 0;
+      background: var(--bg); color: var(--text);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .header h2 {
+      font-size: 15px; margin: 0; font-weight: 700;
+      color: var(--primary); letter-spacing: -0.3px;
+    }
+    .header-right { display: flex; align-items: center; gap: 6px; }
+
+    #cacheIndicator, #counter {
+      font-size: 10px; font-weight: 600; padding: 3px 9px;
+      border-radius: 10px; background: var(--primary-soft); color: var(--primary);
+      border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+      display: none;
+    }
+    #counter { display: inline-block; }
+
+    .icon-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-2); cursor: pointer;
+      width: 28px; height: 28px; padding: 0;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all 0.15s;
+    }
+    .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+    /* ── Tabs ────────────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex; gap: 2px; margin-bottom: 12px;
+      background: var(--surface-2); border-radius: var(--radius); padding: 3px;
+      border: 1px solid var(--border);
+    }
+    .tab {
+      flex: 1; padding: 7px 10px; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--text-2);
+      border-radius: 6px; text-align: center; transition: all 0.15s;
+    }
+    .tab:hover { color: var(--primary); }
+    .tab.active {
+      background: var(--surface); color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Cards / surfaces ────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 12px; margin-bottom: 10px; box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Form controls ───────────────────────────────────────────────────── */
+    .row { display: flex; gap: 6px; align-items: center; }
+    input[type=text], input[type=email], input[type=password],
+    input[type=number], select, textarea {
+      padding: 6px 9px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 12px; outline: none; background: var(--surface); color: var(--text);
+      font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+    }
+    textarea { width: 100%; min-height: 80px; resize: vertical; }
+    #q, .search-bar input { flex: 1; font-size: 13px; padding: 7px 10px; }
+
+    .settings { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .settings label {
+      font-size: 12px; color: var(--text-2);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .settings input[type=number] { width: 60px; }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    button {
+      padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer;
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s, background 0.15s;
+    }
+    button:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: default; transform: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-green   { background: var(--green);   color: white; }
+    .btn-red     { background: var(--red);     color: white; }
+    .btn-gray    { background: var(--text-3);  color: white; }
+    .btn-teal    { background: var(--teal);    color: white; }
+    .btn-ghost   {
+      background: transparent; color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+    .btn-sm      { padding: 4px 10px; font-size: 11px; }
+    .btn-xs      { padding: 3px 8px;  font-size: 10px; }
+
+    /* ── Status text ─────────────────────────────────────────────────────── */
+    #status, #msgStatus {
+      font-size: 12px; color: var(--text-2);
+      min-height: 16px; margin: 6px 0;
+    }
+
+    /* ── Tables ──────────────────────────────────────────────────────────── */
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th {
+      background: var(--surface-2); padding: 6px 7px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600; color: var(--text-2);
+      position: sticky; top: 0;
+    }
+    td { padding: 5px 7px; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: var(--surface-2); }
+    .alts { color: var(--text-3); font-size: 10px; }
+
+    /* ── Badges ──────────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      font-size: 10px; font-weight: 600;
+      background: var(--primary-soft); color: var(--primary);
+    }
+    .badge.user { background: var(--green-soft); color: var(--green); }
+    .connection-badge {
+      font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600;
+    }
+    .connection-badge.connected     { background: var(--green-soft); color: var(--green); }
+    .connection-badge.not-connected { background: var(--red-soft);   color: var(--red); }
+    .sent-badge {
+      font-size: 9px; background: var(--warn-soft); color: var(--warn);
+      border-radius: 3px; padding: 1px 5px;
+      border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent);
+      font-weight: 600;
+    }
+    .del-btn {
+      background: none; border: none; color: var(--red);
+      cursor: pointer; font-size: 13px; padding: 0 3px;
+    }
+
+    /* ── Config sub-tabs ─────────────────────────────────────────────────── */
+    .cfg-subtabs {
+      display: flex; border-bottom: 2px solid var(--border);
+      margin-bottom: 12px; gap: 2px;
+    }
+    .cfg-subtab {
+      padding: 6px 14px; font-size: 12px; font-weight: 600;
+      color: var(--text-3); cursor: pointer;
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      transition: all 0.15s;
+    }
+    .cfg-subtab:hover { color: var(--primary); }
+    .cfg-subtab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .cfg-subpanel { display: none; }
+    .cfg-subpanel.active { display: block; }
+
+    /* ── Collapsible card ────────────────────────────────────────────────── */
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .card-toggle {
+      font-size: 10px; color: var(--primary); background: var(--primary-soft);
+      border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .card-body.collapsed { display: none; }
+
+    /* ── Email inner sub-tabs ────────────────────────────────────────────── */
+    .email-subtabs {
+      display: flex; background: var(--surface-2); border-radius: 6px;
+      padding: 3px; gap: 2px; margin-bottom: 10px;
+      border: 1px solid var(--border);
+    }
+    .email-subtab {
+      flex: 1; text-align: center; padding: 5px 10px;
+      font-size: 11px; font-weight: 600; color: var(--text-2);
+      border-radius: 4px; cursor: pointer; transition: all 0.15s;
+    }
+    .email-subtab.active {
+      background: var(--surface); color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .email-subpanel { display: none; }
+    .email-subpanel.active { display: block; }
+
+    /* ── Cache stats box ─────────────────────────────────────────────────── */
+    .cache-stats {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 10px; margin-bottom: 10px;
+    }
+    .cache-stat-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 6px; flex-wrap: wrap;
+    }
+    .cache-stat {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--surface); border-radius: 5px;
+      padding: 4px 10px; border: 1px solid var(--border);
+      min-width: 72px;
+    }
+    .cache-stat-val {
+      font-size: 14px; font-weight: 700;
+      color: var(--primary); line-height: 1.2;
+    }
+    .cache-stat-lbl {
+      font-size: 9px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .cache-stat-val.updating { color: var(--warn); }
+    .cache-actions {
+      display: flex; gap: 6px; margin-top: 8px;
+      flex-wrap: wrap; align-items: center;
+    }
+    #gmailAuthStatus {
+      font-size: 11px; color: var(--text-3);
+      margin-top: 4px; min-height: 13px;
+    }
+
+    /* ── Exclude dropdown ────────────────────────────────────────────────── */
+    #excludeWrap { position: relative; flex-shrink: 0; }
+    #excludeToggle {
+      background: var(--surface); color: var(--text-2);
+      border: 1px solid var(--border); font-size: 11px; padding: 6px 10px;
+      border-radius: 6px; cursor: pointer; white-space: nowrap;
+    }
+    #excludeToggle.has-filters {
+      background: var(--warn-soft); color: var(--warn);
+      border-color: color-mix(in srgb, var(--warn) 40%, transparent);
+    }
+    #excludeDropdown {
+      display: none; position: absolute; right: 0; top: calc(100% + 4px);
+      width: 260px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow-lg);
+      padding: 10px; z-index: 999;
+    }
+    #excludeDropdown.open { display: block; }
+    #excludeDropdown label { font-size: 10px; color: var(--text-3); display: block; margin-bottom: 4px; }
+    #excludeInput { width: 100%; font-size: 11px; resize: vertical; min-height: 56px; }
+
+    /* ── Replacement table ───────────────────────────────────────────────── */
+    .replacement-add { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+    .replacement-add input { flex: 1; }
+    .example { font-size: 11px; color: var(--text-3); margin-top: 4px; font-style: italic; }
+
+    /* ── Email config fields ─────────────────────────────────────────────── */
+    .email-field {
+      display: flex; flex-direction: column;
+      gap: 4px; margin-bottom: 8px;
+    }
+    .email-field label {
+      font-size: 11px; font-weight: 600; color: var(--text-2);
+    }
+    .email-field input { width: 100%; }
+
+    /* ── Send preview modal ──────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 9999;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: var(--surface); border-radius: 10px;
+      padding: 16px; width: 540px; max-height: 84vh;
+      overflow-y: auto; box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+    }
+    .modal-card h3 { font-size: 13px; margin: 0 0 10px; color: var(--primary); }
+    .preview-meta { font-size: 11px; color: var(--text-2); margin-bottom: 8px; }
+    .preview-meta b { color: var(--text); }
+    .preview-body {
+      font-size: 12px; background: var(--surface-2);
+      border-radius: 6px; padding: 10px; white-space: pre-wrap;
+      border-left: 3px solid var(--primary); margin-bottom: 12px;
+      color: var(--text);
+    }
+    .preview-actions {
+      display: flex; gap: 8px; justify-content: flex-end; align-items: center;
+    }
+    .block-btn {
+      background: var(--warn-soft); color: var(--warn);
+      border: 1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+      font-size: 10px; padding: 3px 8px;
+    }
+
+    /* ── People list ─────────────────────────────────────────────────────── */
+    .people-search h3 { font-size: 13px; margin: 0 0 10px; font-weight: 700; }
+    .search-bar { display: flex; gap: 6px; margin-bottom: 8px; }
+    .action-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px; gap: 6px; flex-wrap: wrap;
+    }
+    .action-row span { font-size: 12px; color: var(--text-2); }
+    #peopleList {
+      max-height: 300px; overflow-y: auto;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface);
+    }
+    .person-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+    }
+    .person-item:last-child { border-bottom: none; }
+    .person-info { flex: 1; min-width: 0; }
+    .person-name {
+      font-size: 12px; font-weight: 600; color: var(--text);
+      margin-bottom: 2px;
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    }
+    .person-company { font-size: 11px; color: var(--text-3); }
+    .person-email-gen { font-size: 10px; color: var(--teal); }
+    .person-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .preview-btn { background: var(--text-3);  color: white; }
+    .msg-btn     { background: var(--primary); color: white; }
+    .email-btn   { background: var(--teal);    color: white; }
+
+    .pagination {
+      display: flex; justify-content: center; gap: 8px; align-items: center; margin-top: 10px;
+    }
+    .pagination button {
+      padding: 5px 12px; font-size: 11px;
+      background: var(--surface-2); color: var(--text-2);
+      border: 1px solid var(--border);
+    }
+    .pagination button:hover:not(:disabled) {
+      background: var(--primary-soft); color: var(--primary);
+    }
+    .pagination span { font-size: 12px; color: var(--text-2); }
+
+    /* ── Selection modal ─────────────────────────────────────────────────── */
+    .sel-modal-card {
+      background: var(--surface); border-radius: 10px;
+      width: 580px; max-height: 86vh;
+      display: flex; flex-direction: column;
+      box-shadow: var(--shadow-lg); overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .sel-modal-header {
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .sel-modal-header h3 { margin: 0; font-size: 13px; color: var(--primary); }
+    .sel-modal-toolbar {
+      padding: 8px 14px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0; background: var(--surface-2);
+    }
+    .sel-preview {
+      font-size: 11px; color: var(--text-2);
+      padding: 8px 14px; background: var(--warn-soft);
+      border-bottom: 1px solid color-mix(in srgb, var(--warn) 30%, transparent);
+      flex-shrink: 0;
+    }
+    .sel-list { flex: 1; overflow-y: auto; padding: 4px 14px; }
+    .sel-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 2px; border-bottom: 1px solid var(--border);
+      font-size: 12px; cursor: pointer;
+    }
+    .sel-item:last-child { border-bottom: none; }
+    .sel-item:hover { background: var(--surface-2); }
+    .sel-modal-footer {
+      padding: 10px 14px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    /* ── Bulk send progress ──────────────────────────────────────────────── */
+    .progress-bar-wrap {
+      width: 100%; height: 6px; background: var(--surface-2);
+      border-radius: 3px; overflow: hidden; margin: 8px 0;
+    }
+    .progress-bar {
+      height: 100%; background: var(--primary);
+      transition: width 0.3s ease; border-radius: 3px;
+    }
+
+    /* ── Activity log ────────────────────────────────────────────────────── */
+    .activity-item {
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; gap: 8px;
+      font-size: 11px;
+    }
+    .activity-channel {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.3px; min-width: 50px; text-align: center;
+    }
+    .activity-channel.email   { background: var(--green-soft);   color: var(--green); }
+    .activity-channel.message { background: var(--primary-soft); color: var(--primary); }
+    .activity-channel.connect { background: var(--warn-soft);    color: var(--warn); }
+    .activity-status.sent   { color: var(--green); font-weight: 700; }
+    .activity-status.failed { color: var(--red);   font-weight: 700; }
+    .activity-meta { color: var(--text-3); font-size: 10px; }
+
+    /* ── Stats chart ─────────────────────────────────────────────────────── */
+    .stats-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .stat-tile {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px; text-align: center;
+    }
+    .stat-tile .v { font-size: 22px; font-weight: 800; color: var(--primary); }
+    .stat-tile .l {
+      font-size: 10px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px;
+    }
+    #statsChart {
+      width: 100%; height: 120px; display: block;
+      background: var(--surface-2); border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Template selector ───────────────────────────────────────────────── */
+    .template-bar {
+      display: flex; gap: 6px; align-items: center; margin-bottom: 8px;
+    }
+    .template-bar select { flex: 1; }
+    .template-bar input { flex: 1; }
+
+    details summary {
+      font-size: 12px; color: var(--primary);
+      cursor: pointer; font-weight: 600; padding: 4px 0;
+    }
+    details[open] summary { margin-bottom: 8px; }
+
+    /* ── Misc ────────────────────────────────────────────────────────────── */
+    .hint {
+      font-size: 11px; color: var(--text-3);
+      background: var(--surface-2); border-radius: 6px;
+      padding: 6px 10px; border-left: 3px solid var(--primary);
+    }
+    .empty-state {
+      text-align: center; padding: 30px 10px;
+      color: var(--text-3); font-size: 12px;
+    }
+    code {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 11px; background: var(--surface-2);
+      padding: 1px 5px; border-radius: 3px; color: var(--text-2);
+    }
+    kbd {
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      font-size: 10px; background: var(--surface-2);
+      padding: 1px 5px; border-radius: 3px;
+      border: 1px solid var(--border); color: var(--text-2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="header-left">
+      <h2>🤝 LinkedIn Helper Pro</h2>
+      <span id="cacheIndicator"></span>
+    </div>
+    <div class="header-right">
+      <span id="counter">0 / 10</span>
+      <button id="themeToggle" class="icon-btn" title="Toggle dark mode">🌙</button>
+    </div>
+  </div>
+
+  <!-- ── Main tabs ───────────────────────────────────────────────────────── -->
+  <div class="tabs">
+    <div class="tab active" data-tab="scrapping">🔍 Scrape</div>
+    <div class="tab" data-tab="messaging">💬 Outreach</div>
+    <div class="tab" data-tab="activity">📋 Activity</div>
+    <div class="tab" data-tab="settings">⚙ Settings</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- ── Scrape tab ──────────────────────────────────────────────────────── -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div id="scrappingTab" class="tab-content active">
+    <div class="card">
+      <div class="row" style="margin-bottom:8px;">
+        <input id="q" type="text" placeholder="e.g. engineering manager google" />
+        <button id="search" class="btn-primary">Search</button>
+        <button id="export" class="btn-green" disabled>Export CSV</button>
+        <button id="clear" class="btn-red">Clear</button>
+        <button id="configToggle" class="btn-ghost">⚙ Formats</button>
+      </div>
+      <div class="settings">
+        <label>Pages: <input type="number" id="maxPages" min="1" max="15" value="5"></label>
+        <label>Auto-flush at: <input type="number" id="flushAt" min="1" max="500" value="10"> rows</label>
+      </div>
+    </div>
+
+    <div id="status"></div>
+
+    <div id="configPanel" class="card" style="display:none;">
+      <h3 style="font-size:12px;margin:0 0 8px;font-weight:600;">
+        Email format overrides
+        <span style="font-size:11px;color:var(--text-3);font-weight:normal">
+          — company → email format
+        </span>
+      </h3>
+      <div class="row" style="margin-bottom:8px;">
+        <input id="cfgCompany" type="text" placeholder="company name (e.g. google)" style="flex:1">
+        <select id="cfgFormat">
+          <option value="first.last">first.last</option>
+          <option value="flast">flast</option>
+          <option value="firstlast">firstlast</option>
+          <option value="first">first</option>
+          <option value="f.last">f.last</option>
+          <option value="first_last">first_last</option>
+        </select>
+        <button id="cfgAdd" class="btn-green">+ Add</button>
+      </div>
+      <div style="max-height:200px;overflow-y:auto;">
+        <table id="cfgTable">
+          <thead><tr><th>Company</th><th>Format</th><th>Source</th><th></th></tr></thead>
+          <tbody id="cfgTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="max-height:380px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>First</th><th>Last</th><th>Company</th>
+              <th>Email</th><th>Type</th><th>Alt. formats</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- ── Outreach tab ────────────────────────────────────────────────────── -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div id="messagingTab" class="tab-content">
+
+    <!-- Config card (templates + email + cache) -->
+    <div class="card" style="padding-bottom:0;">
+      <div class="card-header" id="configCardHeader" style="padding-bottom:10px;">
+        <div class="cfg-subtabs" style="margin-bottom:0;border-bottom:none;flex:1;">
+          <div class="cfg-subtab active" data-cfg="msgPanel">💬 Message</div>
+          <div class="cfg-subtab" data-cfg="emailPanel">✉ Email</div>
+        </div>
+        <button class="card-toggle" id="cfgCardToggle" style="margin-left:8px;flex-shrink:0;">
+          ▲ collapse
+        </button>
+      </div>
+
+      <div class="card-body" id="cfgCardBody"
+           style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px;">
+
+        <!-- ── Message sub-panel ────────────────────────────────────────── -->
+        <div id="msgPanel" class="cfg-subpanel active">
+
+          <!-- Template selector -->
+          <div class="template-bar">
+            <select id="msgTemplateSelect">
+              <option value="__default__">Default template</option>
+            </select>
+            <input id="msgTemplateName" type="text" placeholder="New template name…">
+            <button id="msgTemplateSave" class="btn-green btn-sm">+ Save as</button>
+            <button id="msgTemplateDelete" class="btn-red btn-sm" title="Delete current template">🗑</button>
+          </div>
+
+          <textarea id="messageText"
+            placeholder="LinkedIn message template. Use keywords defined below.&#10;e.g. Hi {name}, saw you work at {company}…"></textarea>
+
+          <details style="margin-top:10px;">
+            <summary>⚙ Keyword Replacements</summary>
+            <div style="margin-top:8px;">
+              <div class="replacement-add">
+                <input id="replaceKeyword" type="text" placeholder="keyword (e.g. name, company)">
+                <select id="replaceAttribute">
+                  <option value="firstName">First Name</option>
+                  <option value="lastName">Last Name</option>
+                  <option value="fullName">Full Name</option>
+                  <option value="company">Company Name</option>
+                </select>
+                <button id="replaceAdd" class="btn-green">+ Add</button>
+              </div>
+              <table id="replacementTable">
+                <thead><tr><th>Keyword</th><th>Replaces With</th><th></th></tr></thead>
+                <tbody id="replacementTbody" class="replacement-tbody"></tbody>
+              </table>
+              <div class="example">Tip: Type <code>{name}</code> in the template and add <code>name → First Name</code> here.</div>
+            </div>
+          </details>
+
+          <div style="margin-top:10px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <button id="saveMessage" class="btn-green">💾 Save Template</button>
+            <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+              <input type="checkbox" id="caseSensitive"> Case-sensitive
+            </label>
+            <label style="font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer;">
+              <input type="checkbox" id="dryRun"> Dry run (don't actually send)
+            </label>
+          </div>
+        </div>
+
+        <!-- ── Email sub-panel ──────────────────────────────────────────── -->
+        <div id="emailPanel" class="cfg-subpanel">
+          <div class="email-subtabs">
+            <div class="email-subtab active" data-epanel="emailTemplatePanel">📝 Template</div>
+            <div class="email-subtab" data-epanel="emailGmailPanel">📊 Gmail &amp; Cache</div>
+          </div>
+
+          <!-- Template inner tab -->
+          <div id="emailTemplatePanel" class="email-subpanel active">
+            <div class="hint" style="margin-bottom:10px;">
+              Sends via your <b>logged-in Gmail</b> — no third-party service.
+            </div>
+
+            <!-- Template selector -->
+            <div class="template-bar">
+              <select id="emailTemplateSelect">
+                <option value="__default__">Default template</option>
+              </select>
+              <input id="emailTemplateName" type="text" placeholder="New template name…">
+              <button id="emailTemplateSave" class="btn-green btn-sm">+ Save as</button>
+              <button id="emailTemplateDelete" class="btn-red btn-sm" title="Delete current template">🗑</button>
+            </div>
+
+            <div class="email-field">
+              <label>Subject <span style="color:var(--text-3);font-weight:normal">— use {firstName}, {company}, etc.</span></label>
+              <input id="emailSubject" type="text" placeholder="e.g. Hi {firstName} — quick note about {company}">
+            </div>
+            <div class="email-field">
+              <label>Body <span style="color:var(--text-3);font-weight:normal">— wrap placeholders in braces, e.g. {firstName}</span></label>
+              <textarea id="emailBody" style="min-height:90px;" placeholder="Hi {firstName},&#10;&#10;I noticed {company} is hiring …"></textarea>
+            </div>
+
+            <details style="margin-top:10px;">
+              <summary>⚙ Keyword Replacements</summary>
+              <div style="margin-top:8px;">
+                <div class="replacement-add">
+                  <input id="replaceKeywordEmail" type="text" placeholder="keyword (e.g. name, company)">
+                  <select id="replaceAttributeEmail">
+                    <option value="firstName">First Name</option>
+                    <option value="lastName">Last Name</option>
+                    <option value="fullName">Full Name</option>
+                    <option value="company">Company Name</option>
+                  </select>
+                  <button id="replaceAddEmail" class="btn-green">+ Add</button>
+                </div>
+                <table id="replacementTableEmail">
+                  <thead><tr><th>Keyword</th><th>Replaces With</th><th></th></tr></thead>
+                  <tbody id="replacementTbodyEmail" class="replacement-tbody"></tbody>
+                </table>
+                <div class="example">Tip: Type <code>{name}</code> in the subject or body and add <code>name → First Name</code> here. Keywords are shared with the Message tab.</div>
+              </div>
+            </details>
+
+            <button id="saveEmailConfig" class="btn-teal">💾 Save Template</button>
+          </div>
+
+          <!-- Gmail & Cache inner tab -->
+          <div id="emailGmailPanel" class="email-subpanel">
+            <div class="cache-stats">
+              <div class="cache-stat-row">
+                <div class="cache-stat">
+                  <span class="cache-stat-val" id="cacheContactCount">—</span>
+                  <span class="cache-stat-lbl">Contacts</span>
+                </div>
+                <div class="cache-stat">
+                  <span class="cache-stat-val" id="cacheSizeKb">—</span>
+                  <span class="cache-stat-lbl">Cache KB</span>
+                </div>
+                <div class="cache-stat">
+                  <span class="cache-stat-val" id="cacheAge">—</span>
+                  <span class="cache-stat-lbl">Age</span>
+                </div>
+                <div class="cache-stat">
+                  <span class="cache-stat-val" id="sentTodayCount">—</span>
+                  <span class="cache-stat-lbl">Sent today</span>
+                </div>
+              </div>
+              <div class="cache-actions">
+                <button id="authorizeGmail" class="btn-sm btn-primary">🔑 Authorize Gmail</button>
+                <button id="refreshSentCache" class="btn-sm btn-teal">↺ Flush &amp; Refresh</button>
+                <button id="fetchSentToday" class="btn-sm btn-ghost">↺ Sent today</button>
+              </div>
+              <div id="gmailAuthStatus"></div>
+            </div>
+
+            <div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:8px;">
+              Duplicate Prevention
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; margin-bottom:6px;">
+              <input type="checkbox" id="skipRecentEmails">
+              <span>Skip recently emailed contacts</span>
+            </label>
+            <div id="skipDaysRow" style="display:none; flex-direction:column; gap:6px; padding-left:20px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:12px; color:var(--text-2); white-space:nowrap;">
+                  Don't re-email within:
+                </label>
+                <input type="number" id="skipEmailDays" min="1" max="3650" value="7" style="width:64px;">
+                <span style="font-size:12px; color:var(--text-3);">days</span>
+              </div>
+              <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer;">
+                <input type="checkbox" id="foreverChk">
+                <span style="color:var(--text-2);">Forever — never re-email same contact</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- People search & list -->
+    <div class="card people-search">
+      <h3>Search People</h3>
+      <div class="search-bar">
+        <input id="msgQuery" type="text" placeholder="e.g. engineering manager google" />
+        <button id="msgSearch" class="btn-primary">Search</button>
+        <button id="importCsv" class="btn-ghost btn-sm" title="Import people from CSV">📁 CSV</button>
+        <input type="file" id="csvFile" accept=".csv,text/csv" style="display:none">
+        <div id="excludeWrap">
+          <button id="excludeToggle">🚫 Exclude</button>
+          <div id="excludeDropdown">
+            <label>Exclude companies (comma or newline · auto-saved)</label>
+            <textarea id="excludeInput" rows="3" placeholder="e.g. google&#10;microsoft, amazon"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="settings" style="margin-bottom:6px;">
+        <label>Pages: <input type="number" id="msgMaxPages" min="1" max="15" value="5"></label>
+        <label>Per page: <input type="number" id="msgPerPage" min="5" max="50" value="10"></label>
+        <label>Show:
+          <select id="connFilter">
+            <option value="all">All</option>
+            <option value="connected">Connected only</option>
+            <option value="notconnected">Not connected only</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="msgStatus"></div>
+
+      <div id="peopleListContainer" style="display:none;">
+        <div class="action-row">
+          <span id="peopleCount">0 people found</span>
+          <div style="display:flex;gap:6px;">
+            <button id="emailAllPage"   class="btn-teal  btn-sm">✉ Email Selected</button>
+            <button id="messageAllPage" class="btn-green btn-sm">💬 Message Selected</button>
+          </div>
+        </div>
+        <div id="peopleList"></div>
+        <div class="pagination">
+          <button id="prevPage">← Prev</button>
+          <span id="pageInfo">Page 1 of 1</span>
+          <button id="nextPage">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- ── Activity tab ────────────────────────────────────────────────────── -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div id="activityTab" class="tab-content">
+
+    <!-- Stats tiles -->
+    <div class="stats-row">
+      <div class="stat-tile"><div class="v" id="statEmailToday">0</div><div class="l">Emails today</div></div>
+      <div class="stat-tile"><div class="v" id="statMsgToday">0</div><div class="l">Messages today</div></div>
+      <div class="stat-tile"><div class="v" id="statConnToday">0</div><div class="l">Invites today</div></div>
+      <div class="stat-tile"><div class="v" id="statTotal7">0</div><div class="l">Total 7-day</div></div>
+    </div>
+
+    <!-- 7-day bar chart -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:700;color:var(--text);">Last 7 days</span>
+        <span style="font-size:10px;color:var(--text-3);">email · message · invite</span>
+      </div>
+      <svg id="statsChart" viewBox="0 0 580 120" preserveAspectRatio="none"></svg>
+    </div>
+
+    <!-- Activity log -->
+    <div class="card">
+      <div class="action-row">
+        <span style="font-size:12px;font-weight:700;color:var(--text);">Recent activity</span>
+        <div style="display:flex;gap:6px;">
+          <select id="activityFilter">
+            <option value="all">All</option>
+            <option value="email">Emails only</option>
+            <option value="message">Messages only</option>
+            <option value="connect">Invites only</option>
+            <option value="failed">Failed only</option>
+          </select>
+          <button id="exportActivity" class="btn-ghost btn-sm">📥 Export CSV</button>
+          <button id="clearActivity"  class="btn-red   btn-sm">🗑 Clear</button>
+        </div>
+      </div>
+      <div id="activityList" style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;background:var(--surface);"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- ── Settings tab ────────────────────────────────────────────────────── -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <div id="settingsTab" class="tab-content">
+
+    <div class="card">
+      <h3 style="font-size:13px;margin:0 0 10px;">Rate Limits</h3>
+      <div class="hint" style="margin-bottom:10px;">
+        LinkedIn throttles users who exceed ~100 connection requests/week and ~20 messages/day.
+        Set conservative limits to stay safe.
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-bottom:10px;">
+        <input type="checkbox" id="rateLimitEnabled">
+        <span>Enable rate limiting</span>
+      </label>
+      <div id="rateLimitFields" style="display:none;padding-left:24px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:12px;white-space:nowrap;">Max per hour:</label>
+          <input type="number" id="maxPerHour" min="1" max="500" value="15" style="width:64px;">
+          <span style="font-size:11px;color:var(--text-3);">recommended: 10-20</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:12px;white-space:nowrap;">Max per day:</label>
+          <input type="number" id="maxPerDay" min="1" max="2000" value="50" style="width:64px;">
+          <span style="font-size:11px;color:var(--text-3);">recommended: 30-60</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:13px;margin:0 0 10px;">Send Behaviour</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:12px;white-space:nowrap;">Delay between sends:</label>
+          <input type="number" id="sendDelay" min="200" max="60000" step="100" value="1500" style="width:80px;">
+          <span style="font-size:11px;color:var(--text-3);">ms (recommend 1500+)</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:12px;white-space:nowrap;">Email delay:</label>
+          <input type="number" id="emailDelay" min="200" max="60000" step="100" value="800" style="width:80px;">
+          <span style="font-size:11px;color:var(--text-3);">ms</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:13px;margin:0 0 10px;">Email Discovery</h3>
+      <div class="hint" style="margin-bottom:10px;">
+        Find real emails instead of guessing. The selection modal will have a
+        <b>🔍 Find Emails</b> button that runs sources in this order:
+        LinkedIn Contact-Info → Apollo.io API → pattern guess.
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-bottom:8px;">
+        <input type="checkbox" id="useLinkedInScrape" checked>
+        <span>Use LinkedIn Contact-Info (1st-degree connections only · free)</span>
+      </label>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;margin-bottom:6px;">
+        <input type="checkbox" id="useApollo">
+        <span>Use Apollo.io API</span>
+      </label>
+      <div id="apolloKeyRow" style="display:none;padding-left:24px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <input type="password" id="apolloApiKey" placeholder="Apollo API key" style="flex:1;font-size:11px;padding:4px 6px;">
+          <button id="apolloTestBtn" class="btn-gray btn-sm">Test</button>
+        </div>
+        <div id="apolloTestStatus" style="font-size:11px;color:var(--text-3);min-height:14px;"></div>
+        <div class="example" style="margin-top:4px;">
+          Get a key at <code>apollo.io/settings/integrations/api</code>.
+          Free plan returns masked emails on most lookups — paid required for unmasked.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:13px;margin:0 0 10px;">Appearance</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="font-size:12px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="radio" name="theme" value="light"> Light
+        </label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="radio" name="theme" value="dark"> Dark
+        </label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="radio" name="theme" value="system" checked> System default
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:13px;margin:0 0 10px;">Data</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button id="exportAllData" class="btn-ghost btn-sm">📥 Export all data</button>
+        <button id="clearAllData"  class="btn-red   btn-sm">🗑 Reset everything</button>
+      </div>
+      <div class="example" style="margin-top:8px;">
+        Reset removes templates, cache, activity log and settings. Cannot be undone.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:13px;margin:0 0 10px;">About</h3>
+      <div style="font-size:11px;color:var(--text-2);line-height:1.6;">
+        LinkedIn Helper Pro <b>v2.0.0</b><br>
+        Find people, generate emails, send personalised messages and emails.<br>
+        <span style="color:var(--text-3);">Data lives only on your computer — nothing is uploaded anywhere.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+  <!-- ── Modals ──────────────────────────────────────────────────────────── -->
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Selection modal -->
+  <div id="selectionModal" class="modal-overlay">
+    <div class="sel-modal-card">
+      <div class="sel-modal-header">
+        <h3 id="selModalTitle">Select People</h3>
+        <button id="selModalClose" class="btn-gray btn-sm">✕</button>
+      </div>
+      <div class="sel-preview">
+        <b>Template:</b> <span id="rawTemplatePreview" style="font-style:italic;"></span>
+      </div>
+      <div class="sel-modal-toolbar">
+        <label style="font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="selectAllChk"> Select All
+        </label>
+        <span id="selCount" style="font-size:11px; color:var(--text-3);"></span>
+      </div>
+      <div class="sel-list" id="selectionList"></div>
+
+      <!-- Progress -->
+      <div id="bulkProgress" style="padding:8px 14px;background:var(--surface-2);border-top:1px solid var(--border);display:none;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);">
+          <span id="bulkProgressLabel">Sending…</span>
+          <span id="bulkProgressCount">0/0</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="bulkProgressBar" style="width:0%;"></div></div>
+      </div>
+
+      <div class="sel-modal-footer">
+        <span style="font-size:11px; color:var(--text-3);">Sends sequentially with delay</span>
+        <div style="display:flex;gap:8px;">
+          <button id="pauseBulkBtn"  class="btn-ghost" style="display:none;">⏸ Pause</button>
+          <button id="cancelBulkBtn" class="btn-red"   style="display:none;">⏹ Stop</button>
+          <button id="findEmailsBtn" class="btn-ghost" style="display:none;" title="Look up real emails via LinkedIn / Apollo">🔍 Find Emails</button>
+          <button id="resetSelectionBtn" class="btn-gray" title="Re-check everyone and forget previous picks">↺ Reset</button>
+          <button id="cancelSelectionBtn" class="btn-gray">Close</button>
+          <button id="sendSelectedBtn"    class="btn-green">Send to Selected (0)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Send preview modal -->
+  <div id="sendPreview" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="previewTitle">Preview</h3>
+      <div class="preview-meta" id="previewMeta"></div>
+      <div class="preview-body" id="previewBody"></div>
+      <div class="preview-actions">
+        <button id="previewExclude" class="block-btn" style="margin-right:auto;">🚫 Exclude company</button>
+        <button id="previewCancel" class="btn-gray">Cancel</button>
+        <button id="previewConfirm" class="btn-green">Send ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="company-formats.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
